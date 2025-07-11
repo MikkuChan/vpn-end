@@ -60,6 +60,23 @@ if [[ "$REQUEST_METHOD" == "GET" ]]; then
     exit 1
   fi
 
+  # Validasi UUID sudah digunakan
+  uuid_exists=false
+  if [[ -f "/etc/xray/config.json" ]]; then
+    if grep -q "\"id\": *\"$uuid\"" /etc/xray/config.json; then
+      uuid_exists=true
+    fi
+  fi
+  if [[ -f "/etc/vmess/.vmess.db" ]]; then
+    if grep -q "$uuid" /etc/vmess/.vmess.db; then
+      uuid_exists=true
+    fi
+  fi
+  if [[ "$uuid_exists" == "true" ]]; then
+    printf '{"status":"error","message":"UUID already in use"}\n'
+    exit 1
+  fi
+
   if ! [[ "$masaaktif" =~ ^[0-9]+$ ]] || [[ "$masaaktif" -le 0 ]]; then
     printf '{"status":"error","message":"Masa aktif harus angka positif"}\n'
     exit 1
